@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 from datetime import datetime
-from src.proyecto.models import AsistenciaService
+from proyecto.UI.models.procesamiento_asistencia import AsistenciaService
 
 
 def crear_dataframe_prueba():
