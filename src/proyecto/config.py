@@ -1,2 +1,4 @@
-RUTA_ARCHIVO_DEFECTO = "data/Asistencia.xlsx"
-RUTA_SALIDA_DEFECTO = "data/Reporte_asistencia.xlsx"
+RUTA_ARCHIVO_ASISTENCIA_DEFECTO = "data/Asistencia.xlsx"
+RUTA_SALIDA_ASISTENCIA_DEFECTO = "data"
+RUTA_ARCHIVO_PRODUCCION_DEFECTO = "data/Produccion.xlsx"
+RUTA_SALIDA_PRODUCCION_DEFECTO = "data"

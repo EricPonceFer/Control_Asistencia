@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon, QColor, QBrush, QFont
 from PySide6.QtCore import QSize, QDate, QAbstractTableModel, Qt
 from PySide6.QtWidgets import QFileDialog
 import os
-from proyecto.models.procesamiento_asistencia import AsistenciaService
+from src.proyecto.models.procesamiento_asistencia import AsistenciaService
 from pathlib import Path
 
 class Ventana(QMainWindow):

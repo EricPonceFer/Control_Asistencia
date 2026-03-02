@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from datetime import timedelta
-from src.proyecto.config import RUTA_ARCHIVO_DEFECTO, RUTA_SALIDA_DEFECTO
+from src.proyecto.config import RUTA_ARCHIVO_ASISTENCIA_DEFECTO, RUTA_SALIDA_ASISTENCIA_DEFECTO
 
 
 class AsistenciaService:
@@ -11,8 +11,8 @@ class AsistenciaService:
         Inicializa el servicio con rutas opcionales.
         Si no se proporcionan, usa las rutas por defecto.
         """
-        self.ruta_archivo = ruta_archivo or RUTA_ARCHIVO_DEFECTO
-        self.ruta_salida = ruta_salida or RUTA_SALIDA_DEFECTO
+        self.ruta_archivo = ruta_archivo or RUTA_ARCHIVO_ASISTENCIA_DEFECTO
+        self.ruta_salida = ruta_salida or RUTA_SALIDA_ASISTENCIA_DEFECTO
         self.fecha_desde = fecha_desde
         self.fecha_hasta = fecha_hasta
     # ==============================

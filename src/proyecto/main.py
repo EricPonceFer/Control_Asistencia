@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication
 import sys
-from processor import Ventana
+from src.proyecto.processor import Ventana
 
 def main():
     app = QApplication(sys.argv)
