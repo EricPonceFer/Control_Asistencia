@@ -72,7 +72,7 @@ Asistencia/                # carpeta raíz del workspace
    ```
 4. Ejecutar la aplicación:
    ```bash
-   python src/proyecto/main.py
+   python -m src.proyecto.main
    ```
 5. Seleccionar el archivo de origen y carpeta de destino en la GUI.
 6. Previsualizar los datos y generar el reporte.
@@ -87,7 +87,29 @@ Asistencia/                # carpeta raíz del workspace
 
 ---
 
-## 📝 Notas adicionales
+## � Generar un ejecutable
+
+Para facilitar la distribución a usuarios que no quieran instalar Python, se puede empaquetar la aplicación en un ejecutable independiente.
+
+1. Instalar PyInstaller en el entorno virtual:
+   ```bash
+   pip install pyinstaller
+   ```
+2. Desde la raíz del proyecto ejecutar:
+   ```bash
+   pyinstaller --onefile --windowed src/proyecto/main.py
+   ```
+   - `--onefile` crea un único binario.
+   - `--windowed` evita que aparezca una consola en Windows.
+
+3. El ejecutable se generará en `dist/main.exe`. Copia también la carpeta `data/` si usas archivos predeterminados.
+4. Opcional: personaliza el ícono con `--icon=path/to/icon.ico` y ajusta el `.spec` si necesitas incluir otros recursos.
+
+Los usuarios sólo deberán ejecutar `main.exe` sin instalar nada adicional, siempre que las librerías necesarias estén empaquetadas correctamente. Si se detectan problemas con PySide6, puede ser necesario ajustar la configuración de PyInstaller o consultar la documentación oficial.
+
+---
+
+## �📝 Notas adicionales
 
 - La interfaz fue diseñada con Qt Designer y convertida a Python en `src/proyecto/UI/diseño.py`.
 - El proyecto se orientó a brindar una solución simple y reutilizable para el área de producción de la empresa.

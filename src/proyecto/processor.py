@@ -8,14 +8,22 @@ import os
 from src.proyecto.models.procesamiento_asistencia import AsistenciaService
 from src.proyecto.models.procesamiento_produccion import ProduccionService
 from pathlib import Path
+import sys
+
+def resource_path(relative_path):
+    if getattr(sys, 'frozen', False):
+        base_path = Path(sys._MEIPASS)
+    else:
+        base_path = Path(__file__).resolve().parent
+
+    return base_path / relative_path
 
 class Ventana(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        base_path = Path(__file__).resolve().parent / "UI" / "resource"
-        icon_path = base_path / "carpeta.png"
+        icon_path = resource_path("UI/resource/carpeta.png")
         self.servicio_asistencia = AsistenciaService()
         self.servicio_produccion = ProduccionService()
         self.servicio_actual = self.servicio_asistencia
