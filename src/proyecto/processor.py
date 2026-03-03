@@ -6,6 +6,7 @@ from PySide6.QtCore import QSize, QDate, QAbstractTableModel, Qt
 from PySide6.QtWidgets import QFileDialog
 import os
 from src.proyecto.models.procesamiento_asistencia import AsistenciaService
+from src.proyecto.models.procesamiento_produccion import ProduccionService
 from pathlib import Path
 
 class Ventana(QMainWindow):
@@ -15,7 +16,10 @@ class Ventana(QMainWindow):
         self.ui.setupUi(self)
         base_path = Path(__file__).resolve().parent / "UI" / "resource"
         icon_path = base_path / "carpeta.png"
-        self.servicio = AsistenciaService()
+        self.servicio_asistencia = AsistenciaService()
+        self.servicio_produccion = ProduccionService()
+        self.servicio_actual = self.servicio_asistencia
+
         self.ui.btn_archivo.setIcon(QIcon(str(icon_path)))
         self.ui.btn_archivo.setIconSize(QSize(20, 20))
         self.ui.btn_archivo.setText("")
@@ -24,15 +28,12 @@ class Ventana(QMainWindow):
         self.ui.btn_guardar.setText("")
 
         self.ui.btn_archivo.clicked.connect(self.seleccionar_archivo)
-        self.ui.btn_previsualizar.clicked.connect(self.previsualizar_datos)
         self.ui.btn_guardar.clicked.connect(self.seleccionar_carpeta)
         self.ui.btn_deshacer.clicked.connect(self.restablecer_campos)
-        self.ui.btn_crear.clicked.connect(self.crear_asistencia)
-
-    def ejecutar_proceso(self):
-        servicio = AsistenciaService()
-        ruta = servicio.ejecutar_proceso_completo()
-        print("Archivo guardado en:", ruta)
+        self.ui.btn_crear.clicked.connect(self.crear_reporte_actual)
+        self.ui.btn_previsualizar.clicked.connect(self.previsualizar_actual)
+        self.ui.btn_produccion.clicked.connect(self.cambiar_a_produccion)
+        self.ui.btn_asistencia.clicked.connect(self.cambiar_a_asistencia)
 
     def seleccionar_archivo(self):
         archivo, _ = QFileDialog.getOpenFileName(
@@ -55,13 +56,13 @@ class Ventana(QMainWindow):
         if carpeta:
             self.ui.ln_Guardado.setText(carpeta)
 
-    def previsualizar_datos(self):
+    def previsualizar_datos(self, servicio):
         try:
-            self.servicio.ruta_archivo = self.ui.ln_Ubicacion.text()
-            self.servicio.fecha_desde = self.ui.dt_desde.date().toString("yyyy-MM-dd")
-            self.servicio.fecha_hasta = self.ui.dt_hasta.date().toString("yyyy-MM-dd")
+            servicio.ruta_archivo = self.ui.ln_Ubicacion.text()
+            servicio.fecha_desde = self.ui.dt_desde.date().toString("yyyy-MM-dd")
+            servicio.fecha_hasta = self.ui.dt_hasta.date().toString("yyyy-MM-dd")
 
-            df_ordenado = self.servicio.ejecutar_proceso_dataframe()
+            df_ordenado = servicio.ejecutar_proceso_dataframe()
 
             modelo = PandasModel(df_ordenado)
             self.ui.tb_visualizar.setModel(modelo)
@@ -76,7 +77,7 @@ class Ventana(QMainWindow):
         self.ui.dt_desde.setDate(QDate(2025, 1, 1))
         self.ui.tb_visualizar.setModel(None)
     
-    def crear_asistencia(self):
+    def crear_reporte(self, servicio):
         try:
             # 🔹 Obtener datos de la UI
             ruta_archivo = self.ui.ln_Ubicacion.text()
@@ -94,14 +95,14 @@ class Ventana(QMainWindow):
                 QMessageBox.warning(self, "Error", "Debe seleccionar carpeta de guardado.")
                 return
 
-            # 🔹 Crear servicio
-            self.servicio.ruta_archivo = ruta_archivo
-            self.servicio.ruta_salida = ruta_salida
-            self.servicio.fecha_desde = fecha_desde
-            self.servicio.fecha_hasta = fecha_hasta
+            # 🔹 Configurar servicio recibido
+            servicio.ruta_archivo = ruta_archivo
+            servicio.ruta_salida = ruta_salida
+            servicio.fecha_desde = fecha_desde
+            servicio.fecha_hasta = fecha_hasta
 
-            # 🔹 Ejecutar proceso
-            ruta_guardada = self.servicio.ejecutar_proceso_completo()
+            # 🔹 Ejecutar proceso del servicio correspondiente
+            ruta_guardada = servicio.ejecutar_proceso_completo()
 
             QMessageBox.information(
                 self,
@@ -115,6 +116,21 @@ class Ventana(QMainWindow):
                 "Error",
                 f"Ocurrió un error:\n{str(e)}"
             )
+
+    def crear_reporte_actual(self):
+        self.crear_reporte(self.servicio_actual)
+
+    def previsualizar_actual(self):
+        self.previsualizar_datos(self.servicio_actual)
+
+    def cambiar_a_produccion(self):
+        self.servicio_actual = self.servicio_produccion
+        self.ui.TituloAsistencia.setText("PROCESAMIENTO DE LA PRODUCCIÓN")
+
+    def cambiar_a_asistencia(self):
+        self.servicio_actual = self.servicio_asistencia
+        self.ui.TituloAsistencia.setText("PROCESAMIENTO DE LA ASISTENCIA")
+
 
 
 class PandasModel(QAbstractTableModel):

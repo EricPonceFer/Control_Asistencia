@@ -25,7 +25,7 @@ class ProduccionService:
             )
 
         try:
-            df = pd.read_excel(self.ruta_archivo)
+            df = pd.read_excel(self.ruta_archivo, dtype={"Orden y maquina": str})
             return df
         except Exception as e:
             raise RuntimeError(f"Error al cargar el archivo: {e}")
@@ -107,10 +107,10 @@ class ProduccionService:
                 hora_inicio_h = hora_inicio.hour
                 hora_fin_h = hora_fin.hour
 
-                if 6 <= hora_inicio_h < 18 and 6 <= hora_fin_h < 18:
+                if 6 <= hora_inicio_h < 18 and 6 <= hora_fin_h < 18 and diferencia_horas <= 12:
                     turno = "Día"
                 elif (hora_inicio_h >= 18 or hora_inicio_h < 6) and \
-                    (hora_fin_h >= 18 or hora_fin_h < 6):
+                    (hora_fin_h >= 18 or hora_fin_h < 6) and diferencia_horas <= 12:
                     turno = "Noche"
                 else:
                     turno = "Mixto"
@@ -122,7 +122,8 @@ class ProduccionService:
                     "Año": hora_inicio.year,
                     "Mes": hora_inicio.month,
                     "Semana": hora_inicio.isocalendar().week,
-                    "Día": hora_inicio.day,
+                    "Día Inicialización": hora_inicio.day,
+                    "Día Finalización": hora_fin.day,
                     "Hora_inicio": hora_inicio.time(),
                     "Hora_fin": hora_fin.time(),
                     "Horas_totales": horas_formateadas,
@@ -141,7 +142,7 @@ class ProduccionService:
     def ordenar_por_fecha(self, df: pd.DataFrame) -> pd.DataFrame:
         try:
             return df.sort_values(
-                by=["Año", "Mes", "Día"]
+                by=["Año", "Mes", "Día Inicialización"]
             ).reset_index(drop=True)
         except Exception as e:
             raise RuntimeError(f"Error ordenando datos: {e}")
@@ -182,7 +183,9 @@ class ProduccionService:
             df_procesado = self.procesar_produccion(df)
             df_ordenado = self.ordenar_por_fecha(df_procesado)
             return df_ordenado
-
+        
+        except PermissionError:
+            raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
         except Exception as e:
             raise RuntimeError(f"Error en el proceso completo: {e}")
     # ==============================

@@ -55,10 +55,10 @@ class Ui_MainWindow(object):
 "}")
         self.label_2.setScaledContents(False)
         self.label_2.setWordWrap(True)
-        self.pushButton = QPushButton(self.MenuBar)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(20, 250, 101, 31))
-        self.pushButton.setStyleSheet(u"QPushButton {\n"
+        self.btn_asistencia = QPushButton(self.MenuBar)
+        self.btn_asistencia.setObjectName(u"btn_asistencia")
+        self.btn_asistencia.setGeometry(QRect(20, 250, 101, 31))
+        self.btn_asistencia.setStyleSheet(u"QPushButton {\n"
 "    background-color: #2563EB;\n"
 "    color: white;\n"
 "    font-size: 13px;\n"
@@ -75,11 +75,11 @@ class Ui_MainWindow(object):
 "    background-color: #1E40AF;\n"
 "}\n"
 "")
-        self.pushButton_2 = QPushButton(self.MenuBar)
-        self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setGeometry(QRect(20, 300, 101, 31))
-        self.pushButton_2.setAutoFillBackground(False)
-        self.pushButton_2.setStyleSheet(u"QPushButton {\n"
+        self.btn_produccion = QPushButton(self.MenuBar)
+        self.btn_produccion.setObjectName(u"btn_produccion")
+        self.btn_produccion.setGeometry(QRect(20, 300, 101, 31))
+        self.btn_produccion.setAutoFillBackground(False)
+        self.btn_produccion.setStyleSheet(u"QPushButton {\n"
 "    background-color: #3F3F46;\n"
 "    color: white;\n"
 "    font-size: 13px;\n"
@@ -393,8 +393,8 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Exportador Excel de Asistencia y Producci\u00f3n", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"ASISTENCIA", None))
-        self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"PRODUCCI\u00d3N", None))
+        self.btn_asistencia.setText(QCoreApplication.translate("MainWindow", u"ASISTENCIA", None))
+        self.btn_produccion.setText(QCoreApplication.translate("MainWindow", u"PRODUCCI\u00d3N", None))
         self.TituloAsistencia.setText(QCoreApplication.translate("MainWindow", u"PROCESAMIENTO DE LA ASISTENCIA", None))
         self.RutaArchivo.setText(QCoreApplication.translate("MainWindow", u"UBICACI\u00d3N DEL ARCHIVO:", None))
         self.btn_archivo.setText("")

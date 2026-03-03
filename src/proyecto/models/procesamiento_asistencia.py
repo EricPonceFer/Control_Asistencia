@@ -2,7 +2,10 @@ import pandas as pd
 import os
 from datetime import timedelta
 from src.proyecto.config import RUTA_ARCHIVO_ASISTENCIA_DEFECTO, RUTA_SALIDA_ASISTENCIA_DEFECTO
-
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font
+from openpyxl.utils import get_column_letter
+from datetime import datetime, timedelta
 
 class AsistenciaService:
 
@@ -91,9 +94,13 @@ class AsistenciaService:
                     hora_entrada = grupo.loc[i, "Fecha y hora"]
                     hora_salida = grupo.loc[i + 1, "Fecha y hora"]
 
-                    diferencia_horas = (
-                        hora_salida - hora_entrada
-                    ).total_seconds() / 3600
+                    diferencia_segundos = (hora_salida - hora_entrada).total_seconds()
+                    diferencia_horas = diferencia_segundos / 3600
+
+                    # 🟡 NUEVO: ignorar duplicados menores a 30 minutos
+                    if diferencia_segundos < 1800:  # 30 * 60
+                        i += 1
+                        continue
 
                     # 🔴 Caso: posible falta de salida
                     if diferencia_horas > 13:
@@ -112,7 +119,7 @@ class AsistenciaService:
                         continue
 
                     # 🔵 Caso válido
-                    horas_td = timedelta(hours=diferencia_horas)
+                    horas_td = timedelta(seconds=diferencia_segundos)
 
                     horas_formateadas = (
                         f"{int(horas_td.total_seconds() // 3600):02d}:"
@@ -144,6 +151,128 @@ class AsistenciaService:
         except Exception as e:
             raise RuntimeError(f"Error procesando asistencia: {e}")
 
+    def generar_formato_semanal(self, df, ruta_salida):
+        try:
+
+            if df.empty:
+                raise ValueError("El DataFrame está vacío.")
+
+            columnas_requeridas = [
+                "Código", "Año", "Mes", "Semana",
+                "Día", "Hora_entrada", "Hora_salida"
+            ]
+
+            for col in columnas_requeridas:
+                if col not in df.columns:
+                    raise ValueError(f"Falta la columna: {col}")
+
+            wb = Workbook()
+            wb.remove(wb.active)
+
+            dias_semana = ["LUNES", "MARTES", "MIÉRCOLES",
+                        "JUEVES", "VIERNES", "SÁBADO", "DOMINGO"]
+
+            meses_es = {
+                1:"ENERO",2:"FEBRERO",3:"MARZO",4:"ABRIL",
+                5:"MAYO",6:"JUNIO",7:"JULIO",8:"AGOSTO",
+                9:"SEPTIEMBRE",10:"OCTUBRE",11:"NOVIEMBRE",12:"DICIEMBRE"
+            }
+
+            # 🔹 Agrupar por Año y Semana
+            for (anio, semana), grupo_semana in df.groupby(["Año", "Semana"]):
+
+                ws = wb.create_sheet(title=f"{anio}-S{semana}")
+
+                mes = int(grupo_semana["Mes"].iloc[0])
+                nombre_mes = meses_es.get(mes, "")
+
+                # 🔹 Obtener lunes real de la semana ISO
+                lunes_semana = datetime.fromisocalendar(int(anio), int(semana), 1)
+
+                # 🔹 TÍTULO
+                ws.merge_cells(start_row=1, start_column=3, end_row=1, end_column=16)
+                ws["C1"] = f"SEMANA {semana} - {nombre_mes} {anio}"
+                ws["C1"].alignment = Alignment(horizontal="center")
+                ws["C1"].font = Font(bold=True, size=14)
+
+                # 🔹 Encabezado OPERADOR
+                ws.merge_cells("A3:A5")
+                ws["A3"] = "OPERADOR"
+                ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+                ws["A3"].font = Font(bold=True)
+
+                col = 2
+
+                for i, dia_nombre in enumerate(dias_semana):
+
+                    fecha_real = lunes_semana.replace() + \
+                                (timedelta(days=i))
+
+                    numero_dia = fecha_real.day
+
+                    # Nombre del día
+                    ws.merge_cells(start_row=3, start_column=col,
+                                end_row=3, end_column=col+1)
+
+                    ws.cell(row=3, column=col).value = dia_nombre
+                    ws.cell(row=3, column=col).alignment = Alignment(horizontal="center")
+                    ws.cell(row=3, column=col).font = Font(bold=True)
+
+                    # Número del día
+                    ws.merge_cells(start_row=4, start_column=col,
+                                end_row=4, end_column=col+1)
+
+                    ws.cell(row=4, column=col).value = numero_dia
+                    ws.cell(row=4, column=col).alignment = Alignment(horizontal="center")
+
+                    # Entrada / Salida
+                    ws.cell(row=5, column=col).value = "ENTRADA"
+                    ws.cell(row=5, column=col+1).value = "SALIDA"
+
+                    col += 2
+
+                # 🔹 Insertar datos
+                fila_excel = 6
+
+                for codigo, grupo_operador in grupo_semana.groupby("Código"):
+
+                    ws.cell(row=fila_excel, column=1).value = codigo
+                    col = 2
+
+                    for i in range(7):
+
+                        fecha_real = lunes_semana + \
+                                    timedelta(days=i)
+
+                        dia_num = fecha_real.day
+
+                        registro = grupo_operador[grupo_operador["Día"] == dia_num]
+
+                        if not registro.empty:
+                            hora_entrada = registro.iloc[0]["Hora_entrada"]
+                            hora_salida = registro.iloc[0]["Hora_salida"]
+
+                            if pd.notna(hora_entrada):
+                                ws.cell(row=fila_excel, column=col).value = str(hora_entrada)
+
+                            if pd.notna(hora_salida):
+                                ws.cell(row=fila_excel, column=col+1).value = str(hora_salida)
+
+                        col += 2
+
+                    fila_excel += 1
+
+                # Ajustar ancho columnas
+                for i in range(1, 17):
+                    ws.column_dimensions[get_column_letter(i)].width = 14
+
+            wb.save(ruta_salida)
+
+        except PermissionError:
+            raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
+
+        except Exception as e:
+            raise RuntimeError(f"Error generando formato semanal: {e}")
 
     # ==============================
     # ORDENAR
@@ -155,7 +284,6 @@ class AsistenciaService:
             ).reset_index(drop=True)
         except Exception as e:
             raise RuntimeError(f"Error ordenando datos: {e}")
-
 
     # ==============================
     # GUARDAR
@@ -193,8 +321,12 @@ class AsistenciaService:
             df_ordenado = self.ordenar_por_fecha(df_procesado)
             return df_ordenado
 
+        except PermissionError:
+            raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
+        
         except Exception as e:
             raise RuntimeError(f"Error en el proceso completo: {e}")
+
     # ==============================
     # PROCESO COMPLETO
     # ==============================
@@ -212,6 +344,7 @@ class AsistenciaService:
         """
         try:
             df_ordenado = self.ejecutar_proceso_dataframe()
+            self.generar_formato_semanal(df_ordenado, os.path.join(self.ruta_salida, "reporte_semanal.xlsx"))
             ruta_guardada = self.guardar_asistencia(df_ordenado)
             return ruta_guardada
 
