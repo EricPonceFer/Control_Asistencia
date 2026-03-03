@@ -307,7 +307,7 @@ class AsistenciaService:
 
         except PermissionError:
             raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
-
+        
         except Exception as e:
             raise RuntimeError(f"Error guardando archivo: {e}")
     
