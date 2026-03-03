@@ -167,6 +167,8 @@ class ProduccionService:
             df_final.to_excel(ruta_final, index=False)
 
             return ruta_final
+        except PermissionError:
+            raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
 
         except Exception as e:
             raise RuntimeError(f"Error guardando archivo: {e}")
@@ -184,8 +186,7 @@ class ProduccionService:
             df_ordenado = self.ordenar_por_fecha(df_procesado)
             return df_ordenado
         
-        except PermissionError:
-            raise RuntimeError("No se pudo guardar el archivo. Cierra el Excel si está abierto.")
+        
         except Exception as e:
             raise RuntimeError(f"Error en el proceso completo: {e}")
     # ==============================
